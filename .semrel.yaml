@@ -1,0 +1,11 @@
+# .semrel.yaml
+branches:
+  - main
+
+changelog:
+  file: CHANGELOG.md
+
+plugins:
+  - condition-github
+  - changelog
+  - goreleaser

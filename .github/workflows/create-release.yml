@@ -1,42 +1,25 @@
-name: Create new release and update CHANGELOG according to conventional commit and semantic release
-run-name: Pull request rebase on main ! => Creating new release for commit "${{ github.event.head_commit.message }}"
-
+name: Release
 
 on:
   push:
     branches:
-       - main
+      - main
 
-permissions: write-all
 jobs:
-  # lint:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-go@v3
-  #       with:
-  #         go-version: 1.25.1
-  #     - uses: golangci/golangci-lint-action@v3
-  # test:
-  #   runs-on: ubuntu-latest
-  #   needs: lint
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-go@v3
-  #       with:
-  #         go-version: 1.25.1
-  #     - run: go test -v ./...
   release:
     runs-on: ubuntu-latest
-    #needs: test
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v4
         with:
-          go-version: 1.25.1
-      - uses: go-semantic-release/action@v1
+          fetch-depth: 0  # important for tags
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'  # or your Go version
+
+      - name: Run Semantic Release
+        uses: go-semantic-release/action@v1
         with:
           hooks: goreleaser
         env:
