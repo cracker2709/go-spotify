@@ -20,7 +20,7 @@ jobs:
     
       with:
         image: cracker2709/go-spotify
-        tag: ${{ github.ref_name }}, latest
+        tag: ${{ github.ref_name }}
         registry: docker.io
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
