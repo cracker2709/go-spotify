@@ -25,5 +25,20 @@ jobs:
         uses: go-semantic-release/action@v1
         with:
           hooks: goreleaser
+          extra_args: --changelog CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      - name: Commit changelog
+        if: success()
+        run: |
+          if [ -f CHANGELOG.md ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add CHANGELOG.md
+            git commit -m "docs: update CHANGELOG.md [skip ci]" || echo "No changes to commit"
+            git push
+          else
+            echo "No CHANGELOG.md file found"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
