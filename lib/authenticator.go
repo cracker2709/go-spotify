@@ -1,41 +1,42 @@
 package lib
 
-
 import (
 	"context"
 	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
+	http "net/http"
 	"os"
 	"time"
 
-	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"github.com/zmb3/spotify/v2"
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
 
 func generateRandomState() string {
-    rand.Seed(time.Now().UnixNano())
-    return fmt.Sprintf("%d", rand.Intn(100000)) 
+	rand.Seed(time.Now().UnixNano())
+	return fmt.Sprintf("%d", rand.Intn(100000))
 }
 
 var (
 	redirectURI = "http://localhost:8080/callback"
 	html        = `<html><body>Login successful! You can close this window.</body></html>`
-	ch    = make(chan *spotify.Client)
-	state = generateRandomState()
+	ch          = make(chan *spotify.Client)
+	state       = generateRandomState()
 )
 
+// returns authenticated Spotify client and user ID
+func Authenticate() (*spotify.Client, string) {
+	var client *spotify.Client
 
-func Authenticate() {
 	// Check for environment variables
 	clientID := os.Getenv("SPOTIFY_CLIENT_ID")
 	clientSecret := os.Getenv("SPOTIFY_CLIENT_SECRET")
-	
+
 	if clientID == "" || clientSecret == "" {
 		log.Fatal("Please set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET environment variables")
 	}
-	
+
 	// Create authenticator with proper credentials
 	auth := spotifyauth.New(
 		spotifyauth.WithRedirectURL(redirectURI),
@@ -45,9 +46,15 @@ func Authenticate() {
 			spotifyauth.ScopeUserReadCurrentlyPlaying,
 			spotifyauth.ScopeUserReadPlaybackState,
 			spotifyauth.ScopeUserModifyPlaybackState,
+			spotifyauth.ScopeUserLibraryRead,
+			spotifyauth.ScopeUserLibraryModify,
+			spotifyauth.ScopePlaylistReadPrivate,
+			spotifyauth.ScopePlaylistModifyPublic,
+			spotifyauth.ScopePlaylistModifyPrivate,
+			spotifyauth.ScopePlaylistReadCollaborative,
 		),
 	)
-	
+
 	// Set up HTTP handlers
 	http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
 		completeAuth(w, r, auth)
@@ -55,7 +62,7 @@ func Authenticate() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Got request for:", r.URL.String())
 	})
-	
+
 	// Start HTTP server in goroutine
 	go func() {
 		log.Println("Starting HTTP server on :8080")
@@ -63,20 +70,21 @@ func Authenticate() {
 			log.Printf("HTTP server error: %v", err)
 		}
 	}()
-	
+
 	// Generate auth URL and prompt user
 	url := auth.AuthURL(state)
 	fmt.Println("Please log in to Spotify by visiting the following page in your browser:", url)
-	
+
 	// Wait for auth to complete
-	client := <-ch
-	
+	client = <-ch
+
 	// Test the authenticated client
 	user, err := client.CurrentUser(context.Background())
 	if err != nil {
 		log.Fatal("Failed to get current user:", err)
 	}
 	fmt.Printf("Successfully logged in as: %s (%s)\n", user.DisplayName, user.ID)
+	return client, user.ID
 }
 
 func completeAuth(w http.ResponseWriter, r *http.Request, auth *spotifyauth.Authenticator) {
@@ -94,6 +102,8 @@ func completeAuth(w http.ResponseWriter, r *http.Request, auth *spotifyauth.Auth
 	// use the token to get an authenticated client
 	client := spotify.New(auth.Client(r.Context(), tok))
 	w.Header().Set("Content-Type", "text/html")
-	fmt.Fprintf(w, html)
+	msg := "Login Completed! You can close this window."
+	fmt.Fprintf(w, "%s", msg)
+	debugLog("Authentication complete, sending client to channel")
 	ch <- client
 }
