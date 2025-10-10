@@ -25,9 +25,14 @@ jobs:
         uses: go-semantic-release/action@v1
         with:
           hooks: goreleaser
-          extra_args: --changelog-file CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      - name: Rename changelog file
+        if: success()
+        run: |
+          if [ -f .generated-go-semantic-release-changelog.md ]; then
+            mv .generated-go-semantic-release-changelog.md CHANGELOG.md
+          fi
       - name: Commit changelog
         if: success()
         run: |
