@@ -1,6 +1,10 @@
-## 1.1.1 (2025-10-10)
+## 1.1.2 (2025-12-17)
 
 #### Bug Fixes
 
-* rename changelog file (741f3543)
+* spotify callback url (0f0b5b07)
+
+#### Documentation
+
+* update CHANGELOG.md [skip ci] (ec9b2a57)
 
