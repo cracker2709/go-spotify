@@ -19,7 +19,7 @@ func generateRandomState() string {
 }
 
 var (
-	redirectURI = "http://localhost:8080/callback"
+	redirectURI = "http://127.0.0.1:8080/callback"
 	html        = `<html><body>Login successful! You can close this window.</body></html>`
 	ch          = make(chan *spotify.Client)
 	state       = generateRandomState()
