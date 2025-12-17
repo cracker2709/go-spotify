@@ -26,7 +26,7 @@ A Go application that provides Spotify Web API authentication using OAuth2 flow.
 1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
 2. Click "Create App"
 3. Fill in the app details
-4. Add `http://localhost:8080/callback` as a Redirect URI
+4. Add `http://127.0.0.1:8080/callback` as a Redirect URI
 5. Note down your Client ID and Client Secret
 
 ### 2. Environment Variables
